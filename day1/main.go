@@ -50,46 +50,16 @@ func main() {
 		}
 	}
 	inventories = append(inventories, current)
-	maxI := maxInventory()
+	sort.Slice(inventories, func(i, j int) bool {
+		return inventories[i].total > inventories[j].total
+	})
 
-	fmt.Printf("Maximum amount of calories carried by 1 elf (problem 1): %d\n", maxI.total)
-	top3 := top3Inventories()
+	fmt.Printf("Maximum amount of calories carried by 1 elf (problem 1): %d\n", inventories[0].total)
+	top3 := inventories[:3]
 
 	var top3Total int
 	for _, inv := range top3 {
 		top3Total += inv.total
 	}
 	fmt.Printf("Maximum amount of calories carried by top 3 elves (problem 2): %d\n", top3Total)
-}
-
-func maxInventory() (max Inventory) {
-	max = inventories[0]
-	for _, inv := range inventories {
-		if inv.total > max.total {
-			max = inv
-		}
-	}
-	return max
-}
-
-func top3Inventories() (top []Inventory) {
-	for _, inv := range inventories {
-		if len(top) < 3 {
-			top = append(top, inv)
-			sort.Slice(top, func(i, j int) bool {
-				return top[i].total < top[j].total
-			})
-		} else {
-			for i, t := range top {
-				if inv.total > t.total {
-					top[i] = inv
-					sort.Slice(top, func(i, j int) bool {
-						return top[i].total < top[j].total
-					})
-					break
-				}
-			}
-		}
-	}
-	return top
 }
