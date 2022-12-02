@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"log"
-	"os"
 	"strings"
+
+	internal "github.com/STollenaar/AdventOfCode2022/internal"
 )
 
 type Strat struct {
@@ -65,18 +63,9 @@ func init() {
 }
 
 func main() {
-	f, err := os.Open("input.txt")
+	lines := internal.Reader()
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-
-	for scanner.Scan() {
-		line := scanner.Text()
+	for _, line := range lines {
 		problem1(line)
 		problem2(line)
 	}
