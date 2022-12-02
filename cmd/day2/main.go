@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	internal "github.com/STollenaar/AdventOfCode2022/internal"
