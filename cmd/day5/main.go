@@ -10,13 +10,22 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+type Grid struct {
+	internal.Grid[string]
+}
+
 var (
-	gridP1 [][]string
-	gridP2 [][]string
+	grid1 *Grid
+	grid2 *Grid
 )
 
 type Move struct {
 	amount, fromX, toX int
+}
+
+func init() {
+	grid1 = new(Grid)
+	grid2 = new(Grid)
 }
 
 func main() {
@@ -36,28 +45,19 @@ func main() {
 				line = strings.ReplaceAll(line, "]", "")
 
 				row := strings.Split(line, " ")
-				gridP1 = append(gridP1, row)
-				gridP2 = append(gridP2, slices.Clone(row))
+				grid1.AddRow(row)
+				grid2.AddRow(slices.Clone(row))
 			} else {
 				continue
 			}
 		} else {
 			move := createMove(line)
-			gridP1 = makeMove(move, gridP1, false)
-			gridP2 = makeMove(move, gridP2, true)
+			makeMove(move, grid1, false)
+			makeMove(move, grid2, true)
 		}
 	}
-	fmt.Println(getTopCrates(gridP1))
-	fmt.Println(getTopCrates(gridP2))
-}
-
-func getHeight(x int, grid [][]string) int {
-	for y, l := range grid {
-		if l[x] != "" {
-			return y
-		}
-	}
-	return len(grid) - 1
+	fmt.Println(getTopCrates(*grid1))
+	fmt.Println(getTopCrates(*grid2))
 }
 
 func createMove(move string) Move {
@@ -73,9 +73,9 @@ func createMove(move string) Move {
 	}
 }
 
-func makeMove(move Move, grid [][]string, fromTop bool) [][]string {
-	startRowH := getHeight(move.fromX, grid)
-	endRowH := getHeight(move.toX, grid)
+func makeMove(move Move, grid *Grid, fromTop bool) {
+	startRowH := grid.GetHeight(move.fromX)
+	endRowH := grid.GetHeight(move.toX)
 
 	var j int
 	var shifted int
@@ -86,8 +86,8 @@ func makeMove(move Move, grid [][]string, fromTop bool) [][]string {
 		} else {
 			startY += j
 		}
-		crate := grid[startY][move.fromX]
-		grid[startY][move.fromX] = ""
+		crate := grid.GetSafeColumn(move.fromX, startY)
+		grid.SetSafeColumn("", move.fromX, startY)
 
 		endY := endRowH - j - 1
 
@@ -96,19 +96,18 @@ func makeMove(move Move, grid [][]string, fromTop bool) [][]string {
 			endY = 0
 			t := make([]string, 9)
 			shifted++
-			grid = append([][]string{t}, grid...)
+			grid.ShiftRow(t)
 		}
 
-		grid[endY][move.toX] = crate
+		grid.SetSafeColumn(crate, move.toX, endY)
 		j++
 	}
-	return grid
 }
 
-func getTopCrates(grid [][]string) (top string) {
+func getTopCrates(grid Grid) (top string) {
 	var ignoreX []int
 	crates := make(map[int]string)
-	for _, row := range grid {
+	for _, row := range grid.Rows {
 		for x, column := range row {
 			if slices.Contains(ignoreX, x) {
 				continue
