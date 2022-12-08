@@ -11,9 +11,7 @@ type Grid struct {
 	internal.Grid[int]
 }
 
-var (
-	treeMap Grid
-)
+var treeMap Grid
 
 func main() {
 	lines := internal.Reader()
@@ -31,10 +29,11 @@ func main() {
 func calcVisible() (visible int) {
 	for y, r := range treeMap.Rows {
 		for x := range r {
-			if visibleFromEdge(x, y, -1, 0) ||
-				visibleFromEdge(x, y, 1, 0) ||
-				visibleFromEdge(x, y, 0, -1) ||
-				visibleFromEdge(x, y, 0, 1) {
+			a, _ := visibleFromEdge(x, y, -1, 0)
+			b, _ := visibleFromEdge(x, y, 1, 0)
+			c, _ := visibleFromEdge(x, y, 0, -1)
+			d, _ := visibleFromEdge(x, y, 0, 1)
+			if a || b || c || d {
 				visible++
 			}
 		}
@@ -42,47 +41,33 @@ func calcVisible() (visible int) {
 	return visible
 }
 
-func visibleFromEdge(x, y, modX, modY int) bool {
+func visibleFromEdge(x, y, modX, modY int) (b bool, it int) {
 	r := treeMap.Rows[y]
 	c := r[x]
 
 	if modX != 0 {
-		if modX > 0 {
-			for i := x + 1; i < len(r); i++ {
-				if c <= r[i] {
-					return false
-				}
-			}
-		} else {
-			for i := x - 1; i >= 0; i-- {
-				if c <= r[i] {
-					return false
-				}
+		for i := x + modX; i < len(r) && i >= 0; i += modX {
+			it++
+			if c <= r[i] {
+				return false, it
 			}
 		}
 	} else {
-		if modY > 0 {
-			for i := y + 1; i < len(treeMap.Rows); i++ {
-				if c <= treeMap.Rows[i][x] {
-					return false
-				}
-			}
-		} else {
-			for i := y - 1; i >= 0; i-- {
-				if c <= treeMap.Rows[i][x] {
-					return false
-				}
+		for i := y + modY; i < len(treeMap.Rows) && i >= 0; i += modY {
+			it++
+			if c <= treeMap.Rows[i][x] {
+				return false, it
 			}
 		}
 	}
 
-	return true
+	return true, it
 }
 
 func maxVisibleTreeSpot() (amount int) {
 	for y, r := range treeMap.Rows {
 		for x := range r {
-			aV := visibleTreesFromPoint(x, y)
+			aV := areaVisible(x, y)
 			if aV > amount {
 				amount = aV
 			}
@@ -91,34 +76,10 @@ func maxVisibleTreeSpot() (amount int) {
 	return amount
 }
 
-func visibleTreesFromPoint(x, y int) (amount int) {
-	r := treeMap.Rows[y]
-	c := r[x]
-
-	var n, e, w, s int
-	for i := x - 1; i >= 0; i-- {
-		e++
-		if c <= r[i] {
-			break
-		}
-	}
-	for i := x + 1; i < len(r); i++ {
-		w++
-		if c <= r[i] {
-			break
-		}
-	}
-	for i := y - 1; i >= 0; i-- {
-		n++
-		if c <= treeMap.Rows[i][x] {
-			break
-		}
-	}
-	for i := y + 1; i < len(treeMap.Rows); i++ {
-		s++
-		if c <= treeMap.Rows[i][x] {
-			break
-		}
-	}
+func areaVisible(x, y int) (amount int) {
+	_, e := visibleFromEdge(x, y, -1, 0)
+	_, w := visibleFromEdge(x, y, 1, 0)
+	_, n := visibleFromEdge(x, y, 0, -1)
+	_, s := visibleFromEdge(x, y, 0, 1)
 	return n * e * w * s
 }
